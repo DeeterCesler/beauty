@@ -1,3 +1,7 @@
+import { kv } from '@vercel/kv';
+
+const THRESHOLDS = [10, 50, 500];
+
 const KIBBE_PROMPT = `You are an expert in the Kibbe Body Type system. Analyze the photograph and determine the person's Kibbe body type.
 
 The 13 valid types: Dramatic, Soft Dramatic, Flamboyant Natural, Natural, Soft Natural, Classic, Soft Classic, Dramatic Classic, Gamine, Soft Gamine, Flamboyant Gamine, Romantic, Theatrical Romantic
@@ -32,6 +36,20 @@ Respond ONLY with valid JSON — no markdown, no surrounding text:
 }
 
 If lighting is artificial or features are unclear, set "seasonalType": null and explain in "summary".`;
+
+async function sendAlert(count, type) {
+  const topic = process.env.NTFY_TOPIC;
+  if (!topic) return;
+  await fetch(`https://ntfy.sh/${topic}`, {
+    method: 'POST',
+    headers: {
+      Title: `Beauty app: ${count} AI analyses`,
+      Priority: count >= 500 ? 'high' : 'default',
+      Tags: count >= 500 ? 'warning' : 'sparkles',
+    },
+    body: `Milestone reached: ${count} total AI analyses on the beauty app. Latest: ${type} analysis.`,
+  });
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -79,7 +97,17 @@ export default async function handler(req, res) {
   const data = await openAiRes.json();
   const content = data.choices[0].message.content;
 
-  // Return the raw JSON string — Flutter parses this the same way it parses
-  // direct OpenAI responses, so no changes needed on the Flutter parsing side.
+  // Increment counter and check thresholds (fire-and-forget — don't block the response).
+  (async () => {
+    try {
+      const count = await kv.incr('beauty:api_calls');
+      const prev = count - 1;
+      const crossed = THRESHOLDS.find(t => count >= t && prev < t);
+      if (crossed) await sendAlert(count, type);
+    } catch (e) {
+      console.error('KV/alert error:', e);
+    }
+  })();
+
   res.status(200).send(content);
 }
