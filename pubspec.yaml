@@ -1,0 +1,29 @@
+name: beauty
+description: "Kibbe body type and seasonal color analysis powered by AI."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  provider: ^6.1.1
+  image_picker: ^1.0.7
+  image: ^4.1.7
+  http: ^1.2.0
+  flutter_dotenv: ^5.1.0
+  permission_handler: ^11.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - .env
