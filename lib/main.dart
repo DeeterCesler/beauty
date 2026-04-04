@@ -8,6 +8,7 @@ import 'services/analysis_provider.dart';
 import 'services/anthropic_service.dart';
 import 'services/fallback_analysis_service.dart';
 import 'services/openai_service.dart';
+import 'services/web_proxy_service.dart';
 import 'theme/theme_data.dart';
 
 Future<void> main() async {
@@ -30,6 +31,7 @@ class BeautyApp extends StatelessWidget {
           create: (_) => FallbackAnalysisService(
             primary: AnthropicService(),
             fallback: OpenAIService(),
+            webProxy: WebProxyService(),
           ),
         ),
       ],
