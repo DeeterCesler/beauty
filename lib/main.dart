@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -13,7 +14,7 @@ import 'theme/theme_data.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
+  if (!kIsWeb) await dotenv.load(fileName: '.env');
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(const BeautyApp());
 }
