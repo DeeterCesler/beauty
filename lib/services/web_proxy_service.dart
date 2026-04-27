@@ -6,11 +6,16 @@ import '../models/color_result.dart';
 import 'analysis_provider.dart';
 import 'image_service.dart';
 
-/// Calls the /api/analyze Vercel serverless function instead of OpenAI directly.
-/// The function holds the API key server-side — the browser never sees it.
+// Native builds: supply the deployed URL at build time via
+//   flutter build <target> --dart-define=VERCEL_URL=https://your-app.vercel.app
+const _vercelUrl = String.fromEnvironment('VERCEL_URL');
+
 class WebProxyService implements AnalysisProvider {
-  // Uses the current origin so it works both on Vercel and locally via `vercel dev`.
-  static Uri get _endpoint => Uri.base.replace(path: '/api/analyze');
+  static Uri get _endpoint {
+    if (kIsWeb) return Uri.base.replace(path: '/api/analyze');
+    assert(_vercelUrl.isNotEmpty, 'Set --dart-define=VERCEL_URL=https://... for native builds');
+    return Uri.parse('$_vercelUrl/api/analyze');
+  }
 
   @override
   Future<KibbeResult> analyzeKibbe(Uint8List imageBytes) async {
